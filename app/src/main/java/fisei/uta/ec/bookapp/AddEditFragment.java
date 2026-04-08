@@ -1,5 +1,6 @@
 package fisei.uta.ec.bookapp;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import androidx.loader.content.CursorLoader;
@@ -29,6 +30,26 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
 
     public interface AddEditFragmentListener{
         void onAddEditComplete(Uri contactUri);
+    }
+
+    private String originalName, originalPhone, originalEmail, originalStreet, originalCity, originalState, originalZip;
+
+    private boolean hasUnsavedChanges() {
+        String currentName = nameTextInputLayout.getEditText().getText().toString();
+        String currentPhone = phoneTextInputLayout.getEditText().getText().toString();
+        String currentEmail = emailTextInputLayout.getEditText().getText().toString();
+        String currentStreet = streetTextInputLayout.getEditText().getText().toString();
+        String currentCity = cityTextInputLayout.getEditText().getText().toString();
+        String currentState = stateTextInputLayout.getEditText().getText().toString();
+        String currentZip = zipTextInputLayout.getEditText().getText().toString();
+
+        return !(currentName.equals(originalName) &&
+                currentPhone.equals(originalPhone) &&
+                currentEmail.equals(originalEmail) &&
+                currentStreet.equals(originalStreet) &&
+                currentCity.equals(originalCity) &&
+                currentState.equals(originalState) &&
+                currentZip.equals(originalZip));
     }
 
     private static final int CONTACT_LOADER = 0;
@@ -288,6 +309,22 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader){}
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (hasUnsavedChanges()) {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Cambios no guardados")
+                    .setMessage("¿Desea salir sin guardar o continuar editando?")
+                    .setPositiveButton("Salir sin guardar", (dialog, which) -> {
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                    })
+                    .setNegativeButton("Continuar editando", null)
+                    .show();
+        }
+    }
+
 
 
 }
