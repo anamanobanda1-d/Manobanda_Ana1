@@ -154,6 +154,10 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
         String phone = phoneTextInputLayout.getEditText().getText().toString().trim();
         String email = emailTextInputLayout.getEditText().getText().toString().trim();
         String zip = zipTextInputLayout.getEditText().getText().toString().trim();
+        //Fase 2 - Normalización del teléfono
+        String phoneRaw = phoneTextInputLayout.getEditText().getText().toString().trim();
+        phone = phoneRaw.replaceAll("[\\s-]", ""); // elimina espacios y guiones
+
 
 // Validación: Nombre obligatorio
         if (name.isEmpty()) {
@@ -168,6 +172,7 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
         }
 
 // Validación: Teléfono de 10 dígitos
+
         if (!phone.matches("\\d{10}")) {
             Snackbar.make(coordinatorLayout, "Teléfono debe tener exactamente 10 dígitos", Snackbar.LENGTH_LONG).show();
             return;
@@ -181,6 +186,8 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
 
         contentValues.put(DatabaseDescription.Contact.COLUMN_NAME,
                 nameTextInputLayout.getEditText().getText().toString());
+
+        contentValues.put(DatabaseDescription.Contact.COLUMN_PHONE, phone);
 
         contentValues.put(DatabaseDescription.Contact.COLUMN_PHONE,
                 phoneTextInputLayout.getEditText().getText().toString());
@@ -228,6 +235,7 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
                         R.string.contact_not_updated, Snackbar.LENGTH_LONG).show();
             }
         }
+
     }
 
     @Override
