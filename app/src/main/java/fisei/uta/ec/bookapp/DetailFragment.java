@@ -2,13 +2,12 @@ package fisei.uta.ec.bookapp;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import androidx.loader.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +24,8 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.lifecycle.Lifecycle;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import fisei.uta.ec.bookapp.data.DatabaseDescription;
 
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -32,6 +33,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public interface DetailFragmentListener {
         void onContactDeleted();
         void onEditContact(Uri contactUri);
+        void onAddEditComplete(Uri contactUri); // necesario para refrescar al restaurar
     }
 
     private static final int CONTACT_LOADER = 0;
@@ -119,9 +121,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         if (parentFragment instanceof DetailFragment) {
                             DetailFragment detailFragment = (DetailFragment) parentFragment;
                             if (detailFragment.getActivity() != null) {
-                                detailFragment.getActivity().getContentResolver().delete(
-                                        detailFragment.contactUri, null, null);
-                                detailFragment.listener.onContactDeleted();
+                                detailFragment.deleteContact(); // reutiliza la lógica con Snackbar
                             }
                         }
                     });
@@ -131,16 +131,52 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
     }
 
-
     private void deleteContact() {
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.confirm_title)
                 .setMessage(R.string.confirm_message)
                 .setPositiveButton(R.string.button_delete, (dialog, which) -> {
                     if (contactUri != null) {
-                        int rowsDeleted = requireActivity().getContentResolver().delete(contactUri, null, null);
-                        if (rowsDeleted > 0 && listener != null) {
-                            listener.onContactDeleted();
+                        // Guardar datos del contacto antes de eliminar
+                        Cursor cursor = requireActivity().getContentResolver().query(
+                                contactUri, null, null, null, null);
+
+                        if (cursor != null && cursor.moveToFirst()) {
+                            final ContentValues deletedValues = new ContentValues();
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_NAME,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_NAME)));
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_PHONE,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_PHONE)));
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_EMAIL,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_EMAIL)));
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_STREET,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_STREET)));
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_CITY,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_CITY)));
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_STATE,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_STATE)));
+                            deletedValues.put(DatabaseDescription.Contact.COLUMN_ZIP,
+                                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseDescription.Contact.COLUMN_ZIP)));
+                            cursor.close();
+
+                            // Eliminar contacto
+                            int rowsDeleted = requireActivity().getContentResolver().delete(contactUri, null, null);
+                            if (rowsDeleted > 0 && listener != null) {
+                                listener.onContactDeleted();
+
+                                // Mostrar Snackbar con opción DESHACER
+                                Snackbar snackbar = Snackbar.make(requireView(), "Contacto eliminado", Snackbar.LENGTH_LONG);
+                                snackbar.setAction("DESHACER", v -> {
+                                    Uri restoredUri = requireActivity().getContentResolver().insert(
+                                            DatabaseDescription.Contact.CONTENT_URI, deletedValues);
+
+                                    if (restoredUri != null) {
+                                        listener.onAddEditComplete(restoredUri); // refresca lista y muestra contacto restaurado
+                                        Snackbar.make(requireView(), "Contacto restaurado", Snackbar.LENGTH_SHORT).show();
+                                    }
+                                });
+                                snackbar.show();
+                            }
                         }
                     }
                 })
@@ -148,25 +184,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 .show();
     }
 
-
-
-
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        CursorLoader cursorLoader;
         if (id == CONTACT_LOADER) {
-            cursorLoader = new CursorLoader(getActivity(),
+            return new CursorLoader(getActivity(),
                     contactUri,
                     null,
                     null,
                     null,
                     null);
-        } else {
-            cursorLoader = null;
         }
-
-        return cursorLoader;
+        return null;
     }
 
     @Override
