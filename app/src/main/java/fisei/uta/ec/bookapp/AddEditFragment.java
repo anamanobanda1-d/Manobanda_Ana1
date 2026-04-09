@@ -170,6 +170,14 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
 
     private void saveContact(){
         ContentValues contentValues =  new ContentValues();
+        originalName = nameTextInputLayout.getEditText().getText().toString();
+        originalPhone = phoneTextInputLayout.getEditText().getText().toString();
+        originalEmail = emailTextInputLayout.getEditText().getText().toString();
+        originalStreet = streetTextInputLayout.getEditText().getText().toString();
+        originalCity = cityTextInputLayout.getEditText().getText().toString();
+        originalState = stateTextInputLayout.getEditText().getText().toString();
+        originalZip = zipTextInputLayout.getEditText().getText().toString();
+
         // Obtener valores de los campos
         String name = nameTextInputLayout.getEditText().getText().toString().trim();
         String phone = phoneTextInputLayout.getEditText().getText().toString().trim();
