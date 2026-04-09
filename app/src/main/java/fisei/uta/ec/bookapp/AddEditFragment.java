@@ -32,6 +32,22 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
         void onAddEditComplete(Uri contactUri);
     }
 
+    private static final int CONTACT_LOADER = 0;
+    private AddEditFragmentListener listener;
+    private Uri contactUri;
+    private boolean addingNewContact = true;
+
+    private TextInputLayout nameTextInputLayout;
+    private TextInputLayout phoneTextInputLayout;
+    private TextInputLayout emailTextInputLayout;
+    private TextInputLayout streetTextInputLayout;
+    private TextInputLayout cityTextInputLayout;
+    private TextInputLayout stateTextInputLayout;
+    private TextInputLayout zipTextInputLayout;
+    private FloatingActionButton saveContactFAB;
+
+    private CoordinatorLayout coordinatorLayout;
+
     private String originalName, originalPhone, originalEmail, originalStreet, originalCity, originalState, originalZip;
 
     private boolean hasUnsavedChanges() {
@@ -51,22 +67,6 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
                 currentState.equals(originalState) &&
                 currentZip.equals(originalZip));
     }
-
-    private static final int CONTACT_LOADER = 0;
-    private AddEditFragmentListener listener;
-    private Uri contactUri;
-    private boolean addingNewContact = true;
-
-    private TextInputLayout nameTextInputLayout;
-    private TextInputLayout phoneTextInputLayout;
-    private TextInputLayout emailTextInputLayout;
-    private TextInputLayout streetTextInputLayout;
-    private TextInputLayout cityTextInputLayout;
-    private TextInputLayout stateTextInputLayout;
-    private TextInputLayout zipTextInputLayout;
-    private FloatingActionButton saveContactFAB;
-
-    private CoordinatorLayout coordinatorLayout;
 
 
     @Override
@@ -322,6 +322,7 @@ public class AddEditFragment extends Fragment implements LoaderManager.LoaderCal
                     })
                     .setNegativeButton("Continuar editando", null)
                     .show();
+
         }
     }
 
