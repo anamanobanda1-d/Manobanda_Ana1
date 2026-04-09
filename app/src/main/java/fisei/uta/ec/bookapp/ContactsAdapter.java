@@ -19,7 +19,6 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         void onClick(Uri contactUri);
     }
 
-
     private Cursor cursor = null;
     private final ContactClickListener clickListener;
 
