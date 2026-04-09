@@ -1,0 +1,30 @@
+Análisis Prueba Fase 2
+Ana Manobanda
+1. ¿Qué ocurre cuando el usuario guarda un contacto?
+- El usuario llena el formulario en AddEditFragment.
+- Al presionar guardar, se ejecuta el método saveContact().
+- Primero se realizan las validaciones (nombre obligatorio, teléfono normalizado con 10 dígitos, email válido, ZIP de 5 dígitos).
+- Si todo es correcto, se construye un objeto ContentValues con los datos del contacto.
+- Luego se llama a getContentResolver().insert() (para un nuevo contacto) o update() (si se está editando).
+- Finalmente, se notifica al MainActivity mediante el listener onAddEditComplete(Uri contactUri) para refrescar la lista y mostrar el contacto guardado.
+
+2. ¿Cómo se almacenan los datos del contacto?
+- Los datos se guardan en una base de datos SQLite a través de un ContentProvider.
+- La descripción de la tabla está en DatabaseDescription.Contact, que define las columnas (nombre, teléfono, email, dirección, etc.).
+- El acceso se hace mediante el ContentResolver, que recibe el ContentValues y lo inserta en la tabla correspondiente.
+- El teléfono se almacena normalizado (solo números, sin espacios ni guiones).
+
+3. ¿Cómo se realiza la navegación entre pantallas o fragments?
+- La navegación está controlada por el MainActivity, que implementa los listeners de los fragmentos.
+- Ejemplos:
+  - Desde ContactsFragment (lista) → al seleccionar un contacto se llama onContactSelected(Uri contactUri) y se abre DetailFragment.
+  - Desde DetailFragment → al presionar editar se llama onEditContact(contactUri) y se abre AddEditFragment.
+  - Desde AddEditFragment → al guardar se llama onAddEditComplete(contactUri) y se regresa a la lista o al detalle.
+- La navegación se hace con FragmentTransaction (replace(), addToBackStack()).
+
+4. Problema si una operación costosa se ejecuta en la interfaz (UI)
+- Si una operación pesada (por ejemplo, una consulta grande a la base de datos o procesamiento complejo) se ejecuta directamente en el hilo principal (UI thread):
+  - La aplicación se congelaría y no respondería a las acciones del usuario.
+  - Android podría mostrar el mensaje “App isn’t responding (ANR)”.
+- Esto ocurre porque el hilo principal está ocupado y no puede actualizar la interfaz ni responder a eventos.
+- Por eso en tu implementación se usan Loaders (CursorLoader) para acceder a la base de datos en segundo plano y mantener la UI fluida.
